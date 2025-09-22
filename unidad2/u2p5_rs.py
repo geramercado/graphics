@@ -161,7 +161,49 @@ while ejecutandose:
         color = (200, 200, 200, alpha)
         pygame.draw.line(ventana, color, (0,y), (ANCHO, y), 1)
 
+    #dibijar los ejes de las cordenadas
+    pygame.draw.line(ventana, (150, 150, 150), (0, centro_rotacion[1]), (ANCHO, centro_rotacion[1]), 2)
+    pygame.draw.line(ventana, (150, 150, 150), (centro_rotacion[0], 0), (centro_rotacion[0], ALTO), 2)
         
+    #dibujar formas transformadas
+    pygame.draw.polygon(ventana, AZUL, [(int(x), int(y)) for x, y in cuadrado_transformado], 3)
+    pygame.draw.polygon(ventana, ROJO, [(int(x), int(y)) for x, y in triangulo_transformado], 3)
+
+    #dibujar le ppunto central
+    pygame.draw.circle(ventana, VERDE, centro_rotacion, 6)
+    pygame.draw.circle(ventana, BLANCO, centro_rotacion, 3)
+
+    # interfaz informativa
+    pygame.draw.rect(ventana, (255, 255, 255, 200), (10, 10, 300, 150), 0, 10)
+    pygame.draw.rect(ventana, NEGRO, (10, 10, 300, 150), 2, 10)
+
+    textos = [
+        f"rotacion: {angulo_rotacion:.1f}°",
+        f"sesgado_x: {factor_sesgado_x:.2f}°",
+        f"sesgado_y: {factor_sesgado_y:.2f}°",
+        f"modo: {'automatico' if modo_automatico else 'manual'}",
+        "controles:"
+        "espacio - alternar modo",
+        "r - resetear",
+        "1 - solo rotar",
+        "2 - solo sesgado"
+    ]
+
+    for i, texto in enumerate(textos):
+        color = NEGRO if i < 4 else GRIS
+        superficie = fuente.render(texto, True, color)
+        ventana.blit(superficie, (20, 15 + i * 18))
+
+    #titulo
+    titulo = fuente_titulo.render("rotacion + sesgado + Gerardo MErcado Hurtado", True, MORADO)
+    ventana.blit(titulo, (ANCHO//2 - titulo.get_width()//2, 20))
+
+    #actualizar pantalla
+    pygame.display.flip()
+
+
+#finalizar
+pygame.quit()
 
 
 
