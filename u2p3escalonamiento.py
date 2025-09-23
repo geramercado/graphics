@@ -124,6 +124,7 @@ while ejecutandose:
 
 #cerramos correctamente
 pygame.quit()
+##
 
 
 

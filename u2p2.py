@@ -22,12 +22,6 @@ def transformar_punto_homogeneo(punto, matriz):
 
     return[x_nuevo, y_nuevo]
 
-triangulo_original=[
-    [100, 100], #vertice inferior izquierdo
-    [150, 100], #vertice inferior derecho
-    [125, 50]   #vertice superior (punta)
-]
-
 cuadrado_original=[
 
     [50, 50],
@@ -46,12 +40,6 @@ matriz_traslacion=[
     [0, 1, ty],
     [0, 0, 1]
 
-]
-
-triangulo_trasladado=[
-    [1, tx], #vertice inferior izquierdo
-    [0, ty], #vertice inferior derecho
-    [0, 0]   #vertice superior (punta)
 ]
 
 cuadrado_trasladado=[]
@@ -81,7 +69,7 @@ while ejecutandose:
     #limpiar la ventana
     ventana.fill(BLANCO)
     #dibujar el cuadrado original ; azul
-    pygame.draw.polygon(ventana, AZUL, triangulo_original, 2)
+    pygame.draw.polygon(ventana, AZUL, cuadrado_original, 2)
     #dibujar el cuadrado trasladado - rojo
     #convertir las cordenadas float a entero para pygame
     cuadrado_dibujable=[]
@@ -90,7 +78,7 @@ while ejecutandose:
         y_int = int( round(punto[1]) )
         cuadrado_dibujable.append((x_int, y_int))
     
-    pygame.draw.polygon(ventana, ROJO, triangulo_trasladado, 2)
+    pygame.draw.polygon(ventana, ROJO, cuadrado_trasladado, 2)
 
     #
     #
