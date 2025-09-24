@@ -26,7 +26,7 @@ VERDE = (34, 97, 94)
 MORADO = (139, 92, 246)
 GRIS = (209, 213, 219)
 FONDO = (249, 250, 251)
-NARANJA = (200, 68, 8)
+NARANJA = (200, 165, 0)
 
 #fuentes
 fuente = pygame.font.SysFont('Arial', 16)
@@ -149,4 +149,98 @@ parametros = {
     "mandelbrot": {"nivel_max": 15, "max_iter": 100, "x_min": -2.5, "x_max": 1.0, "y_min": 1.5, "y_max": 1.5},
     "dragon": {"nivel_max": 12, "color": NARANJA}
 }
+
+
+superficie_mandelbrot = pygame.Surface((ANCHO, ALTO))
+mandelbrot_actualizado = False
+
+
+ejecutando = True
+
+while ejecutando:
+    dt = reloj.tick(60) / 1000.0
+
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            ejecutando = False
+
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_1:
+                fractal_actual = "sierpinski"
+            elif evento.key == pygame.K_2:
+                fractal_actual = "koch"
+            elif evento.key == pygame.K_3:
+                fractal_actual = "arbol"
+            elif evento.key == pygame.K_4:
+                fractal_actual = "mandelbrot"
+            elif evento.key == pygame.K_5:
+                fractal_actual = "dragon"
+            
+            #control de nivel si solo el fractal usa niveles
+            elif evento.key == pygame.K_UP:
+                if fractal_actual != "mandelbrot": #mandelbrot no usa niveles
+                    if nivel_recursion < parametros [fractal_actual]["nivel_max"]:
+                        nivel_recursion += 1
+            elif evento.key == pygame.K_DOWN:
+                if fractal_actual != "mandelbrot": #mandelbrot no usa noveles
+                    if nivel_recursion > 0:
+                        nivel_recursion -= 1
+            
+            elif evento.key == pygame.K_LEFT and fractal_actual == "arbol":
+                parametros["arbol"]["angulo_ramificacion"] = max(10, parametros["arbol"]["angulo_ramificacion"] - 5)
+
+            elif evento.key == pygame.K_RIGHT and fractal_actual == "arbol":
+                parametros["arbol"]["angulo_ramificacion"] = min(80, parametros["arbol"]["angulo_ramificacion"] + 5)
+
+            elif evento.key == pygame.K_z and fractal_actual == "mandelbrot":
+                centro_x = (parametros["mandelbrot"]["x_min"] + parametros["mandelbrot"]["x_max"]) / 2
+                centro_y = (parametros["mandelbrot"]["y_min"] + parametros["mandelbrot"]["y_max"]) / 2
+                ancho = (parametros["mandelbrot"]["x_max"] + parametros["mandelbrot"]["x_min"]) / 2
+                alto = (parametros["mandelbrot"]["y_max"] + parametros["mandelbrot"]["x_min"]) / 2
+
+                parametros["mandelbrot"]["x_min"] = centro_x - ancho
+                parametros["mandelbrot"]["x_max"] = centro_x + ancho
+                parametros["mandelbrot"]["y_min"] = centro_y - alto
+                parametros["mandelbrot"]["y_max"] = centro_y + alto
+                mandelbrot_actualizado = False
+
+    #dibujar
+    ventana.fill(FONDO)
+
+    if fractal_actual == "sierpinski":
+        p1 = (ANCHO // 2, 100)
+        p2 = (100, ALTO - 100)
+        p3 = (ANCHO - 100, ALTO - 100)
+        dibujar_sierpinski(ventana, nivel_recursion, p1, p2, p3, parametros ["sierpinski"]["color"])
+
+    elif fractal_actual == "koch":
+        p1 = (100, ALTO // 2)
+        p2 = (ANCHO - 100, ALTO // 2)
+        dibujar_koch(ventana, nivel_recursion, p1, p2, parametros["koch"]["color"])
+
+    elif fractal_actual == "arbol":
+        inicio = (ANCHO // 2, ALTO - 50)
+        dibujar_arbol(ventana, nivel_recursion, inicio, -90,
+                            parametros["arbol"]["longitud"],
+                            parametros["arbol"]["angulo_ramificacion"],
+                            parametros["arbol"]["color"]
+        )
+
+    elif fractal_actual == "mandelbrot":
+        if not mandelbrot_actualizado:
+            superficie_mandelbrot.fill(FONDO)
+            dibujar_mandelbrot(superficie_mandelbrot, 
+                                parametros["mandelbrot"]["x_min"],
+                                parametros["mandelbrot"]["x_max"],
+                                parametros["mandelbrot"]["y_min"],
+                                parametros["mandelbrot"]["y_max"],
+                                parametros["mandelbrot"]["max_iter"]
+            )
+            mandelbrot_actualizado = True
+        ventana.blit(superficie_mandelbrot, (0,0))
+
+    elif fractal_actual == "dragon":
+        p1 = (ANCHO // 3, ALTO // 2)
+        p2 = (2 * ANCHO // 3, ALTO // 2)
+        dibujar_dragon(ventana, nivel_recursion, p1, p2, parametros["arbol"]["color"])
 
