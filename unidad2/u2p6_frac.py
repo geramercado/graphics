@@ -1,5 +1,7 @@
 #Fractales
 
+#Gerardo Mercado Hurtado
+
 import pygame
 import numpy as np
 import math
@@ -27,6 +29,7 @@ MORADO = (139, 92, 246)
 GRIS = (209, 213, 219)
 FONDO = (249, 250, 251)
 NARANJA = (200, 165, 0)
+AMARILLO = (255, 255, 0)
 
 #fuentes
 fuente = pygame.font.SysFont('Arial', 16)
@@ -130,7 +133,7 @@ def dibujar_dragon(superficie, nivel, p1, p2, color, direccion = 1):
         dy = p2[1] - p1[1]
 
         px = p1[0] + (dx - dy * direccion) / 2
-        py = p1[1] + (dy - dx * direccion) / 2
+        py = p1[1] + (dy + dx * direccion) / 2
         p_medio = (px, py)
 
         dibujar_dragon(superficie, nivel - 1, p1, p_medio, color, 1)
@@ -145,7 +148,7 @@ nivel_recursion = 4
 parametros = {
     "sierpinski": {"nivel_max":8, "color": AZUL},
     "koch": {"nivel_max":5, "color": VERDE},
-    "arbol": {"nivel_amx": 10, "angulo_ramificacion": 30, "longitud": 150, "color": MORADO},
+    "arbol": {"nivel_max": 10, "angulo_ramificacion": 30, "longitud": 150, "color": MORADO},
     "mandelbrot": {"nivel_max": 15, "max_iter": 100, "x_min": -2.5, "x_max": 1.0, "y_min": 1.5, "y_max": 1.5},
     "dragon": {"nivel_max": 12, "color": NARANJA}
 }
@@ -179,7 +182,7 @@ while ejecutando:
             #control de nivel si solo el fractal usa niveles
             elif evento.key == pygame.K_UP:
                 if fractal_actual != "mandelbrot": #mandelbrot no usa niveles
-                    if nivel_recursion < parametros [fractal_actual]["nivel_max"]:
+                    if nivel_recursion < parametros[fractal_actual]["nivel_max"]:
                         nivel_recursion += 1
             elif evento.key == pygame.K_DOWN:
                 if fractal_actual != "mandelbrot": #mandelbrot no usa noveles
@@ -242,5 +245,103 @@ while ejecutando:
     elif fractal_actual == "dragon":
         p1 = (ANCHO // 3, ALTO // 2)
         p2 = (2 * ANCHO // 3, ALTO // 2)
-        dibujar_dragon(ventana, nivel_recursion, p1, p2, parametros["arbol"]["color"])
+        dibujar_dragon(ventana, nivel_recursion, p1, p2, parametros["dragon"]["color"])
+
+
+# --- INTERFAZ DE USUARIO MEJORADA ---
+    pygame.draw.rect(ventana, (40, 40, 50, 200), (10, 10, 350, 200), 0, 10)
+    pygame.draw.rect(ventana, MORADO, (10, 10, 350, 200), 2, 10)
+    
+    titulo = fuente_titulo.render("Visualizador de Fractales", True, BLANCO)
+    ventana.blit(titulo, (20, 20))
+    
+    nombres_fractales = {
+        "sierpinski": "Triángulo de Sierpinski",
+        "koch": "Copo de Nieve de Koch",
+        "arbol": "Árbol Fractal",
+        "mandelbrot": "Conjunto de Mandelbrot",
+        "dragon": "Curva del Dragón"
+    }
+    
+    # TEXTO MEJORADO: Muestra controles diferentes para Mandelbrot
+    textos_info = [
+        f"Fractal: {nombres_fractales[fractal_actual]}",
+        f"Nivel: {nivel_recursion}" if fractal_actual != "mandelbrot" else "Iteraciones: 100",
+        "",
+        "CONTROLES:",
+        "1-5: Cambiar fractal",
+    ]
+    
+    if fractal_actual != "mandelbrot":
+        textos_info.extend([
+            "↑↓: Aumentar/disminuir nivel",
+            "",
+            "CONTROLES ESPECÍFICOS:",
+            "←→: Ángulo ramificación (árbol)" if fractal_actual == "arbol" else ""
+        ])
+    else:
+        textos_info.extend([
+            "Z/X: Zoom in/out",
+            "",
+            "El Mandelbrot no usa niveles de recursión",
+            "Usa Z/X para hacer zoom"
+        ])
+    
+    for i, texto in enumerate(textos_info):
+        if texto:  # Solo dibujar si el texto no está vacío
+            color = VERDE if i == 0 else (AMARILLO if i == 1 else BLANCO)
+            surf = fuente.render(texto, True, color)
+            ventana.blit(surf, (20, 50 + i * 18))
+    
+    # Información específica del fractal
+    info_y = ALTO - 150
+    pygame.draw.rect(ventana, (40, 40, 50, 200), (10, info_y, 400, 140), 0, 10)
+    pygame.draw.rect(ventana, AZUL, (10, info_y, 400, 140), 2, 10)
+    
+    info_titulo = fuente_subtitulo.render("Información del Fractal", True, BLANCO)
+    ventana.blit(info_titulo, (20, info_y + 10))
+    
+    if fractal_actual == "sierpinski":
+        info_textos = [
+            "• Dimensión fractal: log₂(3) ≈ 1.585",
+            "• Autosimilaridad perfecta",
+            "• Primer fractal descubierto (1915)",
+            "• Aplicaciones: antenas, compresión"
+        ]
+    elif fractal_actual == "koch":
+        info_textos = [
+            "• Dimensión fractal: log₄(3) ≈ 1.262",
+            "• Longitud infinita, área finita",
+            "• Curva continua no diferenciable",
+            "• Modelado de costas naturales"
+        ]
+    elif fractal_actual == "arbol":
+        info_textos = [
+            f"• Ángulo: {parametros['arbol']['angulo_ramificacion']}°",
+            "• Simula crecimiento de árboles",
+            "• Usado en gráficos 3D y naturaleza",
+            "• Algoritmo L-system"
+        ]
+    elif fractal_actual == "mandelbrot":
+        info_textos = [
+            "• Conjunto más famoso",
+            "• Dimensión fractal: 2",
+            "• Frontera infinitamente compleja",
+            "• Descubierto por Benoit Mandelbrot"
+        ]
+    else:
+        info_textos = [
+            "• Dimensión fractal: 2",
+            "• Llena el plano",
+            "• También llamado 'dragón de Heighway'",
+            "• Aplicaciones: diseño de circuitos"
+        ]
+    
+    for i, texto in enumerate(info_textos):
+        surf = fuente.render(texto, True, BLANCO)
+        ventana.blit(surf, (20, info_y + 40 + i * 16))
+    
+    pygame.display.flip()
+
+pygame.quit()
 
