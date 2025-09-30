@@ -40,6 +40,10 @@ fuentes_sistema = [
     "Georgia", "Comic Sans MS", "Impact", "Trebuchet MS"
 ]
 
+cuento_contado = [
+    "erase una vez", "un cuento que se", "contaba solo"
+]
+
 # Diccionario para guardar las fuentes cargadas
 fuentes_cargadas = {}
 
