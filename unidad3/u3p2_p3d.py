@@ -1,3 +1,6 @@
+#Gerardo Mercado Hurtado
+#Raul Martinez Martinez
+#figuras en movimiento en un plano
 #importar bibliotecas
 import pygame
 import math
@@ -55,7 +58,7 @@ class Objeto3D:
         # Definir las 12 aristas del cubo
         aristas = [
             (0, 1), (1, 3), (3, 2), (2, 0),  # Cara trasera
-            (4, 5), (5, 7), (7, 6), (6, 4),  # Cara delantera
+            (4, 5), (5, 7), (7, 6), (6, 4),  # Cara delanteras
             (0, 4), (1, 5), (2, 6), (3, 7)   # Aristas laterales
         ]
         
@@ -110,13 +113,52 @@ class Objeto3D:
                 aristas.append((idx, idx + divisiones + 1))
         
         return Objeto3D(vertices, aristas, color)
+    
+    #nuevo poligono
+    @staticmethod
+    def crear_cilindro(radio=50, altura=100, segmentos=20, x=0, y=0, z=0, color=AMARILLO):
+        """Crea un cilindro centrado en (x, y, z)"""
+        vertices = []
+        aristas = []
+
+        # Crear vértices de los círculos superior e inferior
+        for i in range(segmentos):
+            angulo = 2 * math.pi * i / segmentos
+            # Círculo inferior
+            xi = x + radio * math.cos(angulo)
+            zi = z + radio * math.sin(angulo)
+            yi = y - altura / 2
+            vertices.append(Punto3D(xi, yi, zi))
+            # Círculo superior
+            yi_sup = y + altura / 2
+            vertices.append(Punto3D(xi, yi_sup, zi))
+        
+        # Conectar aristas verticales
+        for i in range(segmentos):
+            inf = i * 2
+            sup = i * 2 + 1
+            aristas.append((inf, sup))  # Aristas verticales
+        
+        # Conectar aristas de los círculos
+        for i in range(segmentos):
+            inf1 = i * 2
+            inf2 = (i * 2 + 2) % (segmentos * 2)
+            aristas.append((inf1, inf2))  # Inferior
+            
+            sup1 = i * 2 + 1
+            sup2 = (i * 2 + 3) % (segmentos * 2)
+            aristas.append((sup1, sup2))  # Superior
+
+        return Objeto3D(vertices, aristas, color)
+
 
 # Crear escena con múltiples objetos
 objetos = [
-    Objeto3D.crear_cubo(80, x=-150, y=0, z=0, color=ROJO),
-    Objeto3D.crear_piramide(70, 120, x=150, y=50, z=100, color=VERDE),
-    Objeto3D.crear_plano(300, 8, x=0, y=100, z=0, color=AZUL),
-    Objeto3D.crear_cubo(40, x=0, y=-80, z=150, color=AMARILLO),
+    Objeto3D.crear_cubo(80, x=-120, y=10, z=10, color=ROJO),
+    Objeto3D.crear_piramide(70, 120, x=130, y=60, z=90, color=VERDE),
+    Objeto3D.crear_plano(300, 8, x=15, y=80, z=10, color=AZUL),
+    Objeto3D.crear_cubo(40, x=40, y=-60, z=140, color=AMARILLO),
+    Objeto3D.crear_cilindro(radio=50, altura=120, segmentos=20, x=0, y=20, z=90, color=ROJO)
 ]
 
 # Variables de control
@@ -241,3 +283,4 @@ while ejecutando:
 
 # Finalizar
 pygame.quit()
+
