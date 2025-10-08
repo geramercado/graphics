@@ -210,7 +210,7 @@ class Objeto3D:
 
 objetos = [
     Objeto3D.crear_esfera(60, 6, BLANCO),
-    Objeto3D.crear_esfera(20, 6, ROJO),
+    Objeto3D.crear_esfera(20, 6, VERDE),
     Objeto3D.crear_esfera(80, 6, AZUL),
     Objeto3D.crear_ejes(0)  # Ejes coordenados
 ]
@@ -229,7 +229,7 @@ objetos = [
 # Configurar posiciones iniciales
 objetos[0].trasladar(-180, 10, 0)   # Esfera blanco - izquierda
 objetos[1].trasladar(-70, 100, 0)    # Esfera rojo - derecha
-objetos[2].trasladar(90, 0, 0)      # Esfera azul - centro
+objetos[2].trasladar(0, 0, 0)      # Esfera azul - centro
 objetos[3].trasladar(0, 0, 0)      # Ejes coordenados
 
 #final posiciones esferas -----------------------------------------------------------
@@ -248,124 +248,77 @@ velocidad_orbita = 1.0  # velocidad de giro
 #final de lo de velocidad --------------------------------------------------
 
 
+# Variables adicionales
+balas = []  # Lista de disparos
+velocidad_movimiento = 5.0  # Velocidad de desplazamiento de la esfera roja
+velocidad_bala = 15.0  # Velocidad de las balas
+vida_bala = 120  # duración en frames (~2 segundos)
+
 # Bucle principal
 ejecutando = True
 while ejecutando:
-    # Control de tiempo
     dt = reloj.tick(60) / 1000.0
     tiempo += dt
-    
-    # --- MANEJO DE EVENTOS ---
+
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             ejecutando = False
         elif evento.type == pygame.KEYDOWN:
-            # Controles de cámara
+            # Cámara
             if evento.key == pygame.K_UP:
-                distancia_vision = max(100, distancia_vision - 50)
+                objetos[1].posicion.y -= velocidad_movimiento  # subir
+                objetos[1].actualizar_vertices()
             elif evento.key == pygame.K_DOWN:
-                distancia_vision = min(1000, distancia_vision + 50)
-            
-            # Cambiar objeto seleccionado
+                objetos[1].posicion.y += velocidad_movimiento  # bajar
+                objetos[1].actualizar_vertices()
+            elif evento.key == pygame.K_LEFT:
+                objetos[1].posicion.x -= velocidad_movimiento  # izquierda
+                objetos[1].actualizar_vertices()
+            elif evento.key == pygame.K_RIGHT:
+                objetos[1].posicion.x += velocidad_movimiento  # derecha
+                objetos[1].actualizar_vertices()
+
+            # Disparo con espacio
+            elif evento.key == pygame.K_SPACE:
+                balas.append({
+                    "x": objetos[1].posicion.x,
+                    "y": objetos[1].posicion.y,
+                    "z": objetos[1].posicion.z,
+                    "vx": 0,
+                    "vy": 0,
+                    "vz": -velocidad_bala,  # dirección hacia adelante
+                    "vida": vida_bala
+                })
+
+            # Resto de tus controles (rotación, modos, zoom, etc)
             elif evento.key == pygame.K_TAB:
-                objeto_seleccionado = (objeto_seleccionado + 1) % (len(objetos) - 1)  # Excluir ejes
-            
-            # Controles de rotación manual
-            elif evento.key == pygame.K_q:  # Rotar +X
-                objetos[objeto_seleccionado].rotar(5, 0, 0)
-            elif evento.key == pygame.K_a:  # Rotar -X
-                objetos[objeto_seleccionado].rotar(-5, 0, 0)
-            elif evento.key == pygame.K_w:  # Rotar +Y
-                objetos[objeto_seleccionado].rotar(0, 5, 0)
-            elif evento.key == pygame.K_s:  # Rotar -Y
-                objetos[objeto_seleccionado].rotar(0, -5, 0)
-            elif evento.key == pygame.K_e:  # Rotar +Z
-                objetos[objeto_seleccionado].rotar(0, 0, 5)
-            elif evento.key == pygame.K_d:  # Rotar -Z
-                objetos[objeto_seleccionado].rotar(0, 0, -5)
-            
-            # Modos de rotación
-            elif evento.key == pygame.K_1:
-                modo_rotacion = 1  # Automática
-            elif evento.key == pygame.K_2:
-                modo_rotacion = 2  # Manual
-            elif evento.key == pygame.K_3:
-                modo_rotacion = 3  # Orbital
-            elif evento.key == pygame.K_4:
-                modo_rotacion = 4  # Combinada
-            
-            # Velocidad de rotación
+                objeto_seleccionado = (objeto_seleccionado + 1) % (len(objetos) - 1)
+            elif evento.key == pygame.K_q: objetos[objeto_seleccionado].rotar(5, 0, 0)
+            elif evento.key == pygame.K_a: objetos[objeto_seleccionado].rotar(-5, 0, 0)
+            elif evento.key == pygame.K_w: objetos[objeto_seleccionado].rotar(0, 5, 0)
+            elif evento.key == pygame.K_s: objetos[objeto_seleccionado].rotar(0, -5, 0)
+            elif evento.key == pygame.K_e: objetos[objeto_seleccionado].rotar(0, 0, 5)
+            elif evento.key == pygame.K_d: objetos[objeto_seleccionado].rotar(0, 0, -5)
+            elif evento.key == pygame.K_1: modo_rotacion = 1
+            elif evento.key == pygame.K_2: modo_rotacion = 2
+            elif evento.key == pygame.K_3: modo_rotacion = 3
+            elif evento.key == pygame.K_4: modo_rotacion = 4
             elif evento.key == pygame.K_PLUS or evento.key == pygame.K_EQUALS:
                 velocidad_rotacion = min(3.0, velocidad_rotacion + 0.1)
             elif evento.key == pygame.K_MINUS:
                 velocidad_rotacion = max(0.1, velocidad_rotacion - 0.1)
-            
-            # Reset rotaciones
             elif evento.key == pygame.K_r:
                 objetos[objeto_seleccionado].establecer_rotacion(0, 0, 0)
-    
-    # --- ANIMACIONES DE ROTACIÓN ---
-    if modo_rotacion != 2:  # Si no es modo manual
+
+    # Animaciones existentes (rotación/orbital)
+    if modo_rotacion != 2:
         for i, objeto in enumerate(objetos):
-            if i >= len(objetos) - 1:  # Saltar los ejes
-                continue
-                
-            if modo_rotacion == 1:  # Rotación automática individual
-                if i == 0:  # Cubo rojo - rotación en X
-                    objeto.rotar(30 * dt * velocidad_rotacion, 0, 0)
-                elif i == 1:  # Cubo verde - rotación en Y
-                    objeto.rotar(0, 30 * dt * velocidad_rotacion, 0)
-                elif i == 2:  # Cubo azul - rotación en Z
+            if i >= len(objetos) - 1: continue
+            if modo_rotacion == 1:
+                if i == 2:
                     objeto.rotar(0, 0, 30 * dt * velocidad_rotacion)
-                elif i == 3:  # Cubo amarillo - rotación en XYZ
-                    objeto.rotar(
-                        20 * dt * velocidad_rotacion,
-                        25 * dt * velocidad_rotacion,
-                        15 * dt * velocidad_rotacion
-                    )
-            
-            elif modo_rotacion == 3:  # Rotación orbital (alrededor de ejes)
-                # Todos los cubos orbitan alrededor de los ejes globales
-                angulo_orbita = tiempo * 20 * velocidad_rotacion
-                if i == 0:  # Orbita en X
-                    objeto.establecer_rotacion(angulo_orbita, 0, 0)
-                elif i == 1:  # Orbita en Y
-                    objeto.establecer_rotacion(0, angulo_orbita, 0)
-                elif i == 2:  # Orbita en Z
-                    objeto.establecer_rotacion(0, 0, angulo_orbita)
-                elif i == 3:  # Orbita combinada
-                    objeto.establecer_rotacion(
-                        angulo_orbita,
-                        angulo_orbita * 1.5,
-                        angulo_orbita * 0.7
-                    )
-            
-            elif modo_rotacion == 4:  # Rotación combinada compleja
-                base_angulo = tiempo * 25 * velocidad_rotacion
-                if i == 0:  # Movimiento de balanceo
-                    objeto.establecer_rotacion(
-                        math.sin(tiempo) * 45,
-                        base_angulo,
-                        0
-                    )
-                elif i == 1:  # Movimiento de cabeceo
-                    objeto.establecer_rotacion(
-                        0,
-                        math.cos(tiempo) * 45,
-                        base_angulo
-                    )
-                elif i == 2:  # Movimiento de giro
-                    objeto.establecer_rotacion(
-                        base_angulo,
-                        0,
-                        math.sin(tiempo) * 45
-                    )
-                elif i == 3:  # Movimiento caótico
-                    objeto.establecer_rotacion(
-                        math.sin(tiempo * 1.3) * 60,
-                        math.cos(tiempo * 1.7) * 60,
-                        math.sin(tiempo * 2.1) * 60
-                    )
+
+    
     
 
     # --- MOVIMIENTO ORBITAL DE ESFERAS ROJA Y BLANCA --- --------------
@@ -378,87 +331,58 @@ while ejecutando:
     objetos[0].actualizar_vertices()
 
     # Esfera blanca orbitando en sentido contrario
-    objetos[1].posicion.x = math.cos(math.radians(angulo_orbita)) * 400
-    objetos[1].posicion.z = math.sin(math.radians(angulo_orbita)) * 400
-    objetos[1].posicion.y = 0  # mantener en el plano XZ
-    objetos[1].actualizar_vertices()
-
-    # --- MOVIMIENTO ORBITAL DE ESFERAS ROJA Y BLANCA --- --------------
-
-
-    # --- DIBUJADO ---
-    ventana.fill(NEGRO)
     
-    # Dibujar todos los objetos
+
+    # --- MOVIMIENTO ORBITAL DE ESFERAS ROJA Y BLANCA --------------
+
+    # Actualizar balas
+    nuevas_balas = []
+    for bala in balas:
+        bala["x"] += bala["vx"]
+        bala["y"] += bala["vy"]
+        bala["z"] += bala["vz"]
+        bala["vida"] -= 1
+        if bala["vida"] > 0:
+            nuevas_balas.append(bala)
+    balas = nuevas_balas
+
+    # Dibujar escena
+    ventana.fill(NEGRO)
     for i, objeto in enumerate(objetos):
-        if i == len(objetos) - 1:  # Ejes coordenados
-            # Dibujar ejes con colores específicos
+        if i == len(objetos) - 1:
             for j, arista in enumerate(objeto.aristas):
-                punto1 = objeto.vertices[arista[0]]
-                punto2 = objeto.vertices[arista[1]]
-                
-                p1_2d = punto1.proyectar(distancia_vision)
-                p2_2d = punto2.proyectar(distancia_vision)
-                
-                # Asignar colores a los ejes
-                if j == 0: color_eje = ROJO    # Eje X
-                elif j == 1: color_eje = VERDE # Eje Y
-                else: color_eje = AZUL         # Eje Z
-                
+                p1_2d = objeto.vertices[arista[0]].proyectar(distancia_vision)
+                p2_2d = objeto.vertices[arista[1]].proyectar(distancia_vision)
+                color_eje = [ROJO, VERDE, AZUL][j]
                 pygame.draw.line(ventana, color_eje, p1_2d, p2_2d, 3)
         else:
-            # Objetos normales
-            color_objeto = objeto.color
-            grosor_linea = 3 if i == objeto_seleccionado else 2
-            
-            # Dibujar aristas del objeto
             for arista in objeto.aristas:
-                punto1 = objeto.vertices[arista[0]]
-                punto2 = objeto.vertices[arista[1]]
-                
-                p1_2d = punto1.proyectar(distancia_vision)
-                p2_2d = punto2.proyectar(distancia_vision)
-                
-                pygame.draw.line(ventana, color_objeto, p1_2d, p2_2d, grosor_linea)
-            
-            # Dibujar vértices como puntos
-            for vertice in objeto.vertices:
-                x2d, y2d = vertice.proyectar(distancia_vision)
-                color_punto = MORADO if i == objeto_seleccionado else BLANCO
-                pygame.draw.circle(ventana, color_punto, (x2d, y2d), 3)
-    
-    # --- INFORMACIÓN EN PANTALLA ---
+                p1_2d = objeto.vertices[arista[0]].proyectar(distancia_vision)
+                p2_2d = objeto.vertices[arista[1]].proyectar(distancia_vision)
+                pygame.draw.line(ventana, objeto.color, p1_2d, p2_2d, 2)
+
+    # Dibujar balas
+    for bala in balas:
+        p1 = Punto3D(bala["x"], bala["y"], bala["z"]).proyectar(distancia_vision)
+        p2 = Punto3D(bala["x"], bala["y"], bala["z"] + 10).proyectar(distancia_vision)
+        pygame.draw.line(ventana, AMARILLO, p1, p2, 3)
+
+        # --- INFORMACIÓN EN PANTALLA ---
     fuente = pygame.font.SysFont('Arial', 18)
-    modos_rotacion = ["", "AUTOMÁTICA", "MANUAL", "ORBITAL", "COMBINADA"]
     
     info_textos = [
-        f"Objeto {objeto_seleccionado + 1}/4 - Modo: {modos_rotacion[modo_rotacion]}",
-        f"Rotación: ({objetos[objeto_seleccionado].rotacion.x:.1f}°, "
-        f"{objetos[objeto_seleccionado].rotacion.y:.1f}°, "
-        f"{objetos[objeto_seleccionado].rotacion.z:.1f}°)",
-        f"Velocidad: {velocidad_rotacion:.1f}x",
+        f"Balas activas: {len(balas)}",
         "",
-        "CONTROLES ROTACIÓN:",
-        "Q/A: Rotar eje X, W/S: Rotar eje Y, E/D: Rotar eje Z",
-        "1-4: Modos rotación, +/-: Velocidad, R: Reset",
-        "TAB: Cambiar objeto, ↑↓: Zoom cámara"
+        "CONTROLES:",
+        "↑ ↓ ← →  →  Mover nave",
+        "ESPACIO  →  Disparar"
     ]
     
     for i, texto in enumerate(info_textos):
         render = fuente.render(texto, True, BLANCO)
-        ventana.blit(render, (10, 10 + i * 22))
-    
-    # --- LEYENDA DE EJES ---
-    leyenda_x = fuente.render("X: Rojo", True, ROJO)
-    leyenda_y = fuente.render("Y: Verde", True, VERDE)
-    leyenda_z = fuente.render("Z: Azul", True, AZUL)
-    
-    ventana.blit(leyenda_x, (ANCHO - 100, 20))
-    ventana.blit(leyenda_y, (ANCHO - 100, 45))
-    ventana.blit(leyenda_z, (ANCHO - 100, 70))
-    
-    # --- ACTUALIZAR PANTALLA ---
+        ventana.blit(render, (20, 20 + i * 22))
+
+
     pygame.display.flip()
 
-# Finalizar
 pygame.quit()
