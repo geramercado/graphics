@@ -1,4 +1,6 @@
 #Importar bibliotecas necesarias
+#Gerardo Mercado Hurtado
+#Raul Martinez Martinez
 import pygame
 import math
 
@@ -213,6 +215,129 @@ class Objeto3D:
         
         return Objeto3D(vertices, aristas, color)
     
+    # trinagulo --------------------------
+    @staticmethod
+    def crear_triangulo(tamaño=100, color=NARANJA):
+        """Crea un triángulo equilátero en el plano XY centrado en el origen"""
+        h = tamaño * math.sqrt(3) / 2  # Altura del triángulo
+        vertices = [
+            Punto3D(-tamaño/2, h/3, 0),
+            Punto3D(tamaño/2, h/3, 0),
+            Punto3D(0, -2*h/3, 0)
+        ]
+        aristas = [
+            (0, 1), (1, 2), (2, 0)
+        ]
+        return Objeto3D(vertices, aristas, color)
+    # final del tringulo -----------------
+
+    #metodo para crear esfera ---------------------------------------------------------------------
+    @staticmethod
+    def crear_esfera(radio=80, segmentos=20, color=BLANCO):
+        """Crea una esfera 3D mediante puntos conectados por líneas"""
+        vertices = []
+        aristas = []
+        
+        # Generar vértices en coordenadas esféricas
+        for i in range(segmentos + 1):
+            theta = math.pi * i / segmentos  # Ángulo vertical (0 a π)
+            for j in range(segmentos * 2 + 1):
+                phi = 2 * math.pi * j / (segmentos * 2)  # Ángulo horizontal (0 a 2π)
+                x = radio * math.sin(theta) * math.cos(phi)
+                y = radio * math.sin(theta) * math.sin(phi)
+                z = radio * math.cos(theta)
+                vertices.append(Punto3D(x, y, z))
+        
+        # Conectar vértices adyacentes (malla tipo wireframe)
+        for i in range(segmentos):
+            for j in range(segmentos * 2):
+                a = i * (segmentos * 2 + 1) + j
+                b = a + 1
+                c = a + (segmentos * 2 + 1)
+                d = c + 1
+                aristas += [(a, b), (a, c)]
+        
+        return Objeto3D(vertices, aristas, color)
+
+    # ---------------------------------------------------------------------------- metodo para esfera
+    #esfera y cilindro -----------------
+    @staticmethod
+    def crear_esferad(radio=50, segmentos=12, anillos=12, color=ROSA):
+        """Crea una esfera aproximada usando líneas entre vértices"""
+        vertices = []
+        aristas = []
+
+        for i in range(anillos + 1):
+            phi = math.pi * i / anillos
+            for j in range(segmentos):
+                theta = 2 * math.pi * j / segmentos
+                x = radio * math.sin(phi) * math.cos(theta)
+                y = radio * math.sin(phi) * math.sin(theta)
+                z = radio * math.cos(phi)
+                vertices.append(Punto3D(x, y, z))
+
+        # Conectar aristas horizontalmente
+        for i in range(anillos + 1):
+            for j in range(segmentos):
+                aristas.append((i * segmentos + j, i * segmentos + (j + 1) % segmentos))
+
+        # Conectar aristas verticalmente
+        for i in range(anillos):
+            for j in range(segmentos):
+                aristas.append((i * segmentos + j, (i + 1) * segmentos + j))
+
+        return Objeto3D(vertices, aristas, color)
+
+    @staticmethod
+    def crear_cilindro(radio=40, altura=100, segmentos=12, color=CIAN):
+        """Crea un cilindro vertical en Z"""
+        vertices = []
+        aristas = []
+
+        for i in range(2):  # Inferior y superior
+            z = -altura/2 if i == 0 else altura/2
+            for j in range(segmentos):
+                theta = 2 * math.pi * j / segmentos
+                x = radio * math.cos(theta)
+                y = radio * math.sin(theta)
+                vertices.append(Punto3D(x, y, z))
+
+        # Conectar aristas horizontales (circunferencia)
+        for j in range(segmentos):
+            aristas.append((j, (j + 1) % segmentos))  # Base
+            aristas.append((j + segmentos, ((j + 1) % segmentos) + segmentos))  # Top
+
+        # Conectar aristas verticales
+        for j in range(segmentos):
+            aristas.append((j, j + segmentos))
+
+        return Objeto3D(vertices, aristas, color)
+    #esferas y cilindros nuevo ---------------------
+
+    # rombo ------------------------------------
+    @staticmethod
+    def crear_rombo(tamaño=80, color=CIAN):
+        """Crea un rombo 3D (octaedro) centrado en el origen"""
+        vertices = [
+            Punto3D(0, 0, tamaño),   # Vértice superior
+            Punto3D(0, 0, -tamaño),  # Vértice inferior
+            Punto3D(-tamaño, 0, 0),  # Lado izquierdo
+            Punto3D(tamaño, 0, 0),   # Lado derecho
+            Punto3D(0, -tamaño, 0),  # Lado abajo
+            Punto3D(0, tamaño, 0)    # Lado arriba
+        ]
+        
+        aristas = [
+            (0, 2), (0, 3), (0, 4), (0, 5),  # Conectar vértice superior
+            (1, 2), (1, 3), (1, 4), (1, 5),  # Conectar vértice inferior
+            (2, 4), (4, 3), (3, 5), (5, 2)   # Aristas alrededor de la “cintura”
+        ]
+        
+        return Objeto3D(vertices, aristas, color)
+
+    # rombo ------------------------------------
+
+    
     def trasladar(self, dx, dy, dz):
         self.posicion.x += dx
         self.posicion.y += dy
@@ -300,6 +425,13 @@ objetos = [
     Objeto3D.crear_cubo(60, VERDE),
     Objeto3D.crear_piramide(70, 100, AZUL),
     Objeto3D.crear_cubo(50, AMARILLO),
+    Objeto3D.crear_triangulo(80, NARANJA),
+    Objeto3D.crear_triangulo(200, ROJO),
+    Objeto3D.crear_esfera(30, 4, AZUL),
+    Objeto3D.crear_esferad(60, 16, 16, MORADO),
+    Objeto3D.crear_cilindro(40, 120, 16, NARANJA),
+    Objeto3D.crear_cubo(70, VERDE),
+    Objeto3D.crear_rombo(60, ROSA)
 ]
 
 # Configurar posiciones iniciales
@@ -307,6 +439,13 @@ objetos[0].trasladar(-200, 0, 0)    # Cubo rojo - izquierda
 objetos[1].trasladar(200, 0, 0)     # Cubo verde - derecha
 objetos[2].trasladar(0, -150, 0)    # Pirámide azul - abajo
 objetos[3].trasladar(0, 150, 0)     # Cubo amarillo - arriba
+objetos[4].trasladar(-200, -200, 0)  # Triángulo
+objetos[5].trasladar(0, 0, 0)  # Triángulo ROJO
+objetos[6].trasladar(50, 0, 30)  # esfera
+objetos[7].trasladar(0, 80, 0)  # esfera dos
+objetos[8].trasladar(10, -100, 0)  # cilindro
+objetos[9].trasladar(0, 50, 0)  # cubo
+objetos[10].trasladar(0, 0, -150)  # rombo
 
 # Variables de control
 distancia_vision = 500
@@ -395,6 +534,12 @@ while ejecutando:
                     objeto.rotar(0, 0, 20 * dt)
                 elif i == 3:  # Cubo amarillo - rotación XYZ
                     objeto.rotar(15 * dt, 20 * dt, 10 * dt)
+                elif i == 4:  # Cubo amarillo - rotación XYZ
+                    objeto.rotar(15 * dt, 20 * dt, 10 * dt)
+                elif i == 5:  # Cubo amarillo - rotación XYZ
+                    objeto.rotar(15 * dt, 20 * dt, 10 * dt)
+                elif i == 6:  # Cubo amarillo - rotación XYZ
+                    objeto.rotar(15 * dt, 20 * dt, 10 * dt)
             
             elif modo_animacion == 2:  # Sesgado puro
                 if i == 0:  # Sesgado XY oscilante
@@ -421,6 +566,9 @@ while ejecutando:
                     objeto.rotar(10 * dt, 15 * dt, 5 * dt)
                     objeto.sesgar(0, math.sin(tiempo * 1.3) * 0.02)
                     objeto.sesgar(1, math.cos(tiempo * 1.7) * 0.02)
+
+                
+
     
     # --- DIBUJADO ---
     ventana.fill(NEGRO)
