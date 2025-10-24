@@ -4,6 +4,7 @@
 #Raúl Martínez Martínez
 import pygame
 import sys
+import numpy
 
 pygame.init()
 WIDTH, HEIGHT = 900, 700

@@ -245,7 +245,7 @@ def main():
     Sphere((200, 300, 0), 80, plastic_material, base_color=(1.0, 0.1, 0.1)),   # Roja
     Sphere((400, 300, 0), 80, metal_material, base_color=(0.1, 0.1, 1.0)),     # Azul
     Sphere((600, 300, 0), 80, rubber_material, base_color=(0.1, 1.0, 0.1)),    # Verde
-    Sphere((800, 300, 0), 80, billiard_material, base_color=(1.0, 1.0, 0.0))   # Amarilla 🎱
+    Sphere((800, 300, 0), 80, billiard_material, base_color=(1.0, 1.0, 0.0))   # Amarilla
     ]
 
 
