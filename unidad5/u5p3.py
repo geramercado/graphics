@@ -1,3 +1,5 @@
+# Gerardo Mercado Hurtado
+# Raúl Martínez Martínez 
 #Importamos librerias
 import pygame
 import math
