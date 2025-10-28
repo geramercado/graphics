@@ -678,20 +678,26 @@ def demostracion_rectangulo_a_cuadrado():
         # NUEVO: Encadenar partículas
         if shape_tween_2.completado and not particulas_lanzadas:
             lanzar_particulas(centro_explosion_x, centro_explosion_y)
+       
 
-        # --- Dibujado ---
+        # --- Dibujado 
         ventana.fill(NEGRO)
         
+        # 1. DIBUJAR LAS PARTÍCULAS (CAPA INFERIOR)
+        for particula in particulas:
+            particula.dibujar(ventana)
+
+        # 2. DIBUJAR EL CUADRADO (CAPA SUPERIOR)
         forma_a_dibujar = shape_tween_2.forma_actual if tween_2_iniciado else shape_tween_1.forma_actual
         
-        # Ocultar el cuadrado cuando explota
-        if not particulas_lanzadas:
-            pygame.draw.polygon(ventana, NARANJA, forma_a_dibujar)
-            pygame.draw.polygon(ventana, BLANCO, forma_a_dibujar, 2)
-            
-            if mostrar_puntos:
-                for punto in forma_a_dibujar:
-                    pygame.draw.circle(ventana, BLANCO, (int(punto[0]), int(punto[1])), 4)
+        pygame.draw.polygon(ventana, NARANJA, forma_a_dibujar)
+        pygame.draw.polygon(ventana, BLANCO, forma_a_dibujar, 2)
+        
+        if mostrar_puntos:
+            for punto in forma_a_dibujar:
+                pygame.draw.circle(ventana, BLANCO, (int(punto[0]), int(punto[1])), 4)
+
+
         
         # NUEVO: Dibujar partículas
         for particula in particulas:
