@@ -1,4 +1,5 @@
 # importar bibliotecas
+import random
 import pygame
 import math
 import sys
@@ -9,7 +10,7 @@ pygame.init()
 # Configuración de la ventana
 ANCHO, ALTO = 1000, 700
 ventana = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("Clase 4: Onion Skinning - Animación con Referencias")
+pygame.display.set_caption("Onion Skinning, Animación con Referencias Gerardo, Raúl")
 
 # Colores
 NEGRO = (0, 0, 0)
@@ -22,6 +23,9 @@ MORADO = (180, 50, 230)
 NARANJA = (255, 150, 50)
 CIAN = (50, 255, 255)
 ROSA = (255, 100, 180)
+
+#Colores aplicados en cada salto
+COLORES_ANIMACION = [ROJO, VERDE, AZUL, AMARILLO, MORADO, CIAN, NARANJA, ROSA] 
 
 # Fuentes
 fuente_grande = pygame.font.Font(None, 36)
@@ -122,32 +126,32 @@ class SistemaOnionSkinning:
     def _dibujar_personaje(self, superficie, personaje, color):
         """Dibuja un personaje stick figure"""
         # Cabeza
-        pygame.draw.circle(superficie, color, (int(personaje['x']), int(personaje['y'] - 30)), 15)
+        pygame.draw.circle(superficie, color, (int(personaje['x']), int(personaje['y'] - 30)), 80)
         
         # Cuerpo
         pygame.draw.line(superficie, color, 
-                        (personaje['x'], personaje['y'] - 15), 
-                        (personaje['x'], personaje['y'] + 20), 3)
+                         (personaje['x'], personaje['y'] - 15), 
+                         (personaje['x'], personaje['y'] + 20), 3)
         
         # Brazos
         angulo_brazos = personaje.get('angulo_brazos', 0)
-        brazo_longitud = 25
+        brazo_longitud = 250
         
         # Brazo izquierdo
         angulo_izq = math.radians(135 + angulo_brazos)
         x_izq = personaje['x'] + brazo_longitud * math.cos(angulo_izq)
         y_izq = personaje['y'] + brazo_longitud * math.sin(angulo_izq)
         pygame.draw.line(superficie, color, 
-                        (personaje['x'], personaje['y']), 
-                        (x_izq, y_izq), 3)
+                         (personaje['x'], personaje['y']), 
+                         (x_izq, y_izq), 3)
         
         # Brazo derecho
         angulo_der = math.radians(45 - angulo_brazos)
         x_der = personaje['x'] + brazo_longitud * math.cos(angulo_der)
         y_der = personaje['y'] + brazo_longitud * math.sin(angulo_der)
         pygame.draw.line(superficie, color, 
-                        (personaje['x'], personaje['y']), 
-                        (x_der, y_der), 3)
+                         (personaje['x'], personaje['y']), 
+                         (x_der, y_der), 3)
         
         # Piernas
         angulo_piernas = personaje.get('angulo_piernas', 0)
@@ -158,16 +162,16 @@ class SistemaOnionSkinning:
         x_pierna_izq = personaje['x'] + pierna_longitud * math.cos(angulo_pierna_izq)
         y_pierna_izq = personaje['y'] + 20 + pierna_longitud * math.sin(angulo_pierna_izq)
         pygame.draw.line(superficie, color, 
-                        (personaje['x'], personaje['y'] + 20), 
-                        (x_pierna_izq, y_pierna_izq), 3)
+                         (personaje['x'], personaje['y'] + 20), 
+                         (x_pierna_izq, y_pierna_izq), 3)
         
         # Pierna derecha
         angulo_pierna_der = math.radians(315 - angulo_piernas)
         x_pierna_der = personaje['x'] + pierna_longitud * math.cos(angulo_pierna_der)
         y_pierna_der = personaje['y'] + 20 + pierna_longitud * math.sin(angulo_pierna_der)
         pygame.draw.line(superficie, color, 
-                        (personaje['x'], personaje['y'] + 20), 
-                        (x_pierna_der, y_pierna_der), 3)
+                         (personaje['x'], personaje['y'] + 20), 
+                         (x_pierna_der, y_pierna_der), 3)
     
     def _dibujar_forma(self, superficie, forma, color):
         """Dibuja una forma geométrica"""
@@ -184,25 +188,40 @@ class SistemaOnionSkinning:
             pygame.draw.polygon(superficie, color, forma['puntos'])
 
 def demostracion_onion_basico():
-    """Demostración básica de Onion Skinning con animación simple"""
+    """Ciempiés moviéndose al azar, por el plano con un stickman"""
     
-    sistema = SistemaOnionSkinning(max_frames=20)
+    sistema = SistemaOnionSkinning(max_frames=25)
     tiempo_total = 0.0
     animando = True
     
-    # Datos iniciales del personaje
-    personaje_actual = {
-        'x': ANCHO // 2,
-        'y': ALTO // 2,
-        'angulo_brazos': 0,
-        'angulo_piernas': 0
-    }
+    # Parámetros del ciempies
+    num_segmentos = 20
+    longitud_segmento = 25
+    velocidad = 150
+    cambio_direccion_t = 2.5 
+    
+    # Posición inicial y dirección
+    cabeza_x, cabeza_y = ANCHO // 2, ALTO // 2
+    angulo_direccion = random.uniform(0, 2 * math.pi)
+    tiempo_cambio = 0.0
+    
+    # Segmentos iniciales
+    segmentos = []
+    for i in range(num_segmentos):
+        segmentos.append({'x': cabeza_x - i * longitud_segmento, 'y': cabeza_y})
+    
+    # mono
+    stick_x = 0
+    stick_y = 0
+    stick_balanceo = 0.0
+    stick_inclinacion = 0.0
     
     ejecutando = True
     while ejecutando:
-        dt = reloj.tick(FPS) / 1000.0
+        dt = reloj.tick(FPS) / 500.0
         tiempo_total += dt
-        
+        tiempo_cambio += dt
+
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 ejecutando = False
@@ -213,77 +232,149 @@ def demostracion_onion_basico():
                     return
                 elif evento.key == pygame.K_o:
                     sistema.mostrar_onion_skin = not sistema.mostrar_onion_skin
-                elif evento.key == pygame.K_PLUS or evento.key == pygame.K_EQUALS:
+                elif evento.key in (pygame.K_PLUS, pygame.K_EQUALS):
                     sistema.cantidad_frames_mostrar = min(10, sistema.cantidad_frames_mostrar + 1)
                 elif evento.key == pygame.K_MINUS:
                     sistema.cantidad_frames_mostrar = max(1, sistema.cantidad_frames_mostrar - 1)
                 elif evento.key == pygame.K_SPACE:
                     animando = not animando
                 elif evento.key == pygame.K_r:
-                    # Reiniciar animación
                     sistema.frames = []
                     tiempo_total = 0.0
-                    personaje_actual = {
-                        'x': ANCHO // 2,
-                        'y': ALTO // 2,
-                        'angulo_brazos': 0,
-                        'angulo_piernas': 0
-                    }
-        
+                    cabeza_x, cabeza_y = ANCHO // 2, ALTO // 2
+                    angulo_direccion = random.uniform(0, 2 * math.pi)
+                    tiempo_cambio = 0.0
+
         if animando:
-            # Actualizar animación del personaje
-            frecuencia = 2.0  # Velocidad de la animación
-            personaje_actual['angulo_brazos'] = 30 * math.sin(tiempo_total * frecuencia * 2)
-            personaje_actual['angulo_piernas'] = 20 * math.sin(tiempo_total * frecuencia)
-            personaje_actual['x'] = ANCHO // 2 + 100 * math.sin(tiempo_total * frecuencia * 0.5)
+            # Cambiar dirección aleatoriamente de forma suave
+            if tiempo_cambio > cambio_direccion_t:
+                tiempo_cambio = 0
+                angulo_direccion += random.uniform(-math.pi/6, math.pi/6)
+                cambio_direccion_t = random.uniform(1.5, 3.5)
             
-            # Agregar frame actual a la animación
-            if tiempo_total % 0.1 < dt:  # Agregar frame cada ~0.1 segundos
-                sistema.agregar_frame({'personaje': personaje_actual.copy()})
+            # Movimiento de la cabeza
+            cabeza_x += math.cos(angulo_direccion) * velocidad * dt
+            cabeza_y += math.sin(angulo_direccion) * velocidad * dt
+
+            # Rebote en bordes
+            if cabeza_x < 50 or cabeza_x > ANCHO - 50:
+                angulo_direccion = math.pi - angulo_direccion
+            if cabeza_y < 50 or cabeza_y > ALTO - 50:
+                angulo_direccion = -angulo_direccion
+
+            # Actualizar posiciones de los segmentos (siguiendo al anterior)
+            prev_x, prev_y = cabeza_x, cabeza_y
+            for seg in segmentos:
+                dx = prev_x - seg['x']
+                dy = prev_y - seg['y']
+                dist = math.hypot(dx, dy)
+                if dist > longitud_segmento:
+                    factor = longitud_segmento / dist
+                    seg['x'] = prev_x - dx * factor
+                    seg['y'] = prev_y - dy * factor
+                prev_x, prev_y = seg['x'], seg['y']
+
+            # Movimiento aleatorio del mono
+            stick_balanceo += dt * 8
+            stick_inclinacion = math.sin(stick_balanceo) * 10 + random.uniform(-5, 5)
+            
+            cabeza = segmentos[0]
+            stick_x = cabeza['x'] + random.uniform(-4, 4)
+            stick_y = cabeza['y'] - 40 + random.uniform(-3, 3)
+
+            # Guardar frame
+            if tiempo_total % 0.08 < dt:
+                sistema.agregar_frame({'segmentos': [s.copy() for s in segmentos]})
         
-        # Dibujado
+        # Fondo
         ventana.fill(NEGRO)
         
-        # Dibujar onion skinning (frames anteriores)
-        sistema.dibujar_onion_skin(ventana, 
-                                 lambda surf, datos, color: sistema.dibujar_frame_actual(surf, datos, color))
+        # Dibujar ciempies
+        def dibujar_ciempies(superficie, datos, color):
+            if 'segmentos' in datos:
+                for i, seg in enumerate(datos['segmentos']):
+                    tamaño = 18 if i == 0 else 14
+                    pygame.draw.circle(superficie, color, (int(seg['x']), int(seg['y'])), tamaño)
         
-        # Dibujar frame actual
-        sistema.dibujar_frame_actual(ventana, {'personaje': personaje_actual}, ROJO)
+        sistema.dibujar_onion_skin(ventana, dibujar_ciempies)
+        dibujar_ciempies(ventana, {'segmentos': segmentos}, AZUL)
         
-        # Información
-        texto_titulo = fuente_grande.render("Onion Skinning Básico - Animación de Personaje", True, BLANCO)
+        # Dibujar mono
+        def dibujar_stickman(superficie, x, y, inclinacion):
+            cuerpo_color = BLANCO
+            cabeza_radio = 8
+            rotacion = math.radians(inclinacion)
+            cos_r, sin_r = math.cos(rotacion), math.sin(rotacion)
+            
+            def rotar(px, py):
+                return (x + px * cos_r - py * sin_r,
+                        y + px * sin_r + py * cos_r)
+            
+            cabeza_p = rotar(0, -15)
+            cuello = rotar(0, 0)
+            cadera = rotar(0, 20)
+            pierna_izq = rotar(-10, 35)
+            pierna_der = rotar(10, 35)
+            brazo_izq = rotar(-15, -5)
+            brazo_der = rotar(15, -5)
+            
+            pygame.draw.circle(superficie, cuerpo_color, (int(cabeza_p[0]), int(cabeza_p[1])), cabeza_radio)
+            pygame.draw.line(superficie, cuerpo_color, cuello, cadera, 3)
+            pygame.draw.line(superficie, cuerpo_color, cuello, brazo_izq, 2)
+            pygame.draw.line(superficie, cuerpo_color, cuello, brazo_der, 2)
+            pygame.draw.line(superficie, cuerpo_color, cadera, pierna_izq, 3)
+            pygame.draw.line(superficie, cuerpo_color, cadera, pierna_der, 3)
+        
+        dibujar_stickman(ventana, stick_x, stick_y, stick_inclinacion)
+        
+        # Texto
+        texto_titulo = fuente_grande.render("Ciempiés con Stickman randon", True, BLANCO)
         ventana.blit(texto_titulo, (ANCHO//2 - texto_titulo.get_width()//2, 20))
         
         estado_onion = "ACTIVADO" if sistema.mostrar_onion_skin else "DESACTIVADO"
         info_lines = [
-            f"Tiempo: {tiempo_total:.1f}s | Frames: {len(sistema.frames)}",
-            f"Onion Skinning: {estado_onion} | Frames mostrados: {sistema.cantidad_frames_mostrar}",
-            "Los frames anteriores se muestran semitransparentes como referencia",
-            "Permite ver la trayectoria y mantener la consistencia de la animación",
+            f"Onion Skinning: {estado_onion} | Frames: {len(sistema.frames)}",
             "",
-            "Controles:",
             "O: Activar/Desactivar Onion Skinning",
-            "+/-: Aumentar/Disminuir frames mostrados",
-            "ESPACIO: Pausar/Reanudar animación",
-            "R: Reiniciar animación",
+            "+/-: Cambiar cantidad de frames",
+            "ESPACIO: Pausar/Reanudar",
+            "R: Reiniciar",
             "ESC: Volver al menú"
         ]
-        
         for i, linea in enumerate(info_lines):
             texto = fuente_pequena.render(linea, True, BLANCO)
-            ventana.blit(texto, (20, ALTO - 220 + i * 25))
-        
-        # Leyenda de colores
-        pygame.draw.rect(ventana, ROJO, (20, 100, 20, 20))
-        texto_actual = fuente_pequena.render("Frame Actual", True, BLANCO)
-        ventana.blit(texto_actual, (50, 100))
-        
-        pygame.draw.rect(ventana, VERDE, (20, 130, 20, 20))
-        texto_referencia = fuente_pequena.render("Frames Anteriores (Onion Skin)", True, BLANCO)
-        ventana.blit(texto_referencia, (50, 130))
+            ventana.blit(texto, (20, ALTO - 160 + i * 25))
         
         pygame.display.flip()
+
+
+#Dibuja el objeto central en la opcion 2
+def dibujar_objetos_frame_onion(superficie, datos_frame, color, sistema_ref):
+    """
+    Dibuja los círculos y el personaje en un frame, usado para el onion skinning.
+    'color' será VERDE para el onion skin y el color actual para el frame actual.
+    """
+    
+    # Dibujar los círculos
+    if 'objetos' in datos_frame:
+        for obj in datos_frame['objetos']:
+            # Usar COLORES_ANIMACION
+            color_obj = COLORES_ANIMACION[obj['color_idx'] % len(COLORES_ANIMACION)]
+            if color == VERDE: # Onion skin (contorno y color)
+                pygame.draw.circle(superficie, color_obj, 
+                                 (int(obj['x']), int(obj['y'])), 
+                                 int(obj['radio']), 1)
+            else: # Frame actual
+                pygame.draw.circle(superficie, color_obj, 
+                                 (int(obj['x']), int(obj['y'])), 
+                                 int(obj['radio']))
+
+    # Dibujar el personaje central (solo para onion skin)
+    if 'personaje' in datos_frame and color == VERDE:
+        # Usar un color fijo para el onion skin del personaje
+        color_onion_personaje = CIAN
+        sistema_ref._dibujar_personaje(superficie, datos_frame['personaje'], color_onion_personaje)
+
 
 def demostracion_onion_animacion_compleja():
     """Demostración de Onion Skinning con animación compleja"""
@@ -294,7 +385,7 @@ def demostracion_onion_animacion_compleja():
     
     # Crear múltiples objetos para animar
     objetos_actuales = []
-    num_objetos = 5
+    num_objetos = 10
     
     for i in range(num_objetos):
         angulo = 2 * math.pi * i / num_objetos
@@ -307,6 +398,18 @@ def demostracion_onion_animacion_compleja():
             'color_idx': i,
             'fase': angulo
         })
+    
+    # DATOS DEL PERSONAJE CENTRAL
+    personaje_central = {
+        'x': ANCHO // 2,
+        'y': ALTO // 2,
+        'angulo_brazos': 0,
+        'angulo_piernas': 0,
+        'color_idx': 0 
+    }
+    colores_personaje = [ROJO, VERDE, AZUL, AMARILLO, MORADO, CIAN, NARANJA]
+    periodo_brinco = 1.0  # Duración de un ciclo de brinco en segundos
+    periodo_cambio_color = 0.5 # Duración para el cambio de color
     
     ejecutando = True
     while ejecutando:
@@ -332,11 +435,10 @@ def demostracion_onion_animacion_compleja():
                 elif evento.key == pygame.K_r:
                     sistema.frames = []
                     tiempo_total = 0.0
-        
+                    
         if animando:
             # Actualizar animación de objetos
             for obj in objetos_actuales:
-                # Movimiento circular con fase diferente para cada objeto
                 frecuencia = 1.5
                 fase = obj['fase']
                 radio_base = 150
@@ -345,40 +447,63 @@ def demostracion_onion_animacion_compleja():
                 obj['x'] = ANCHO // 2 + radio_actual * math.cos(tiempo_total * frecuencia + fase)
                 obj['y'] = ALTO // 2 + radio_actual * math.sin(tiempo_total * frecuencia + fase)
                 
-                # Cambiar tamaño
                 obj['radio'] = 15 + 10 * math.sin(tiempo_total * 2 * frecuencia + fase)
             
-            # Agregar frame actual a la animación
-            if tiempo_total % 0.08 < dt:  # Agregar frame cada ~0.08 segundos
-                sistema.agregar_frame({'objetos': [obj.copy() for obj in objetos_actuales]})
+            #Actualiza la esfera central brinco y color
+            t_norm = (tiempo_total % periodo_brinco) / periodo_brinco
+            
+            # Altura del brinco (interpolación)
+            altura_base = ALTO // 2 + 100 # Se mueve un poco hacia abajo para centrar
+            max_altura = 100
+            
+            if t_norm < 0.5:
+                # Subiendo
+                t_ease = FuncionesInterpolacion.ease_out_quad(t_norm * 2)
+                personaje_central['y'] = altura_base - max_altura * t_ease
+                # Brazos y piernas se preparan para el salto (encogen)
+                personaje_central['angulo_brazos'] = 5 * t_norm * 2
+                personaje_central['angulo_piernas'] = 10 * t_norm * 2
+            else:
+                # Bajando
+                t_ease = FuncionesInterpolacion.ease_in_quad((t_norm - 0.5) * 2)
+                personaje_central['y'] = altura_base - max_altura * (1 - t_ease)
+                # Brazos y piernas se extienden al tocar el suelo
+                personaje_central['angulo_brazos'] = 5 * (1 - (t_norm - 0.5) * 2)
+                personaje_central['angulo_piernas'] = 10 * (1 - (t_norm - 0.5) * 2)
+            
+            # Cambio de color
+            if tiempo_total % periodo_cambio_color < dt:
+                 personaje_central['color_idx'] = (personaje_central['color_idx'] + 1) % len(colores_personaje)
+            # ---------------------------------------------------
+            
+            # Agregar frame actual a la animación (frame key)
+            if tiempo_total % 0.08 < dt: 
+                sistema.agregar_frame({
+                    'objetos': [obj.copy() for obj in objetos_actuales],
+                    'personaje': personaje_central.copy() 
+                })
         
         # Dibujado
         ventana.fill(NEGRO)
         
-        # Función personalizada para dibujar frames de objetos
-        def dibujar_objetos_frame(superficie, datos_frame, color):
-            if 'objetos' in datos_frame:
-                colores = [ROJO, VERDE, AZUL, AMARILLO, MORADO, CIAN, NARANJA, ROSA]
-                for obj in datos_frame['objetos']:
-                    color_obj = colores[obj['color_idx'] % len(colores)] if color == VERDE else color
-                    if obj['tipo'] == 'circulo':
-                        pygame.draw.circle(superficie, color_obj, 
-                                         (int(obj['x']), int(obj['y'])), 
-                                         int(obj['radio']))
-        
         # Dibujar onion skinning
-        sistema.dibujar_onion_skin(ventana, dibujar_objetos_frame)
+        # Usamos una función lambda para pasar la referencia del sistema a la función de dibujo
+        sistema.dibujar_onion_skin(ventana, lambda surf, datos, color: dibujar_objetos_frame_onion(surf, datos, color, sistema))
         
-        # Dibujar frame actual
-        colores = [ROJO, VERDE, AZUL, AMARILLO, MORADO, CIAN, NARANJA, ROSA]
+        # Dibujar frame actual (Objetos)
         for obj in objetos_actuales:
-            color_obj = colores[obj['color_idx'] % len(colores)]
+            color_obj = COLORES_ANIMACION[obj['color_idx'] % len(COLORES_ANIMACION)]
             pygame.draw.circle(ventana, color_obj, 
                              (int(obj['x']), int(obj['y'])), 
                              int(obj['radio']))
         
+        # Dibujar frame actual (Personaje)
+        color_personaje_actual = colores_personaje[personaje_central['color_idx']]
+        # Reutilizamos el método de dibujo de la clase para el personaje actual (opaco)
+        sistema._dibujar_personaje(ventana, personaje_central, color_personaje_actual)
+
         # Información
-        texto_titulo = fuente_grande.render("Onion Skinning Complejo - Múltiples Objetos", True, BLANCO)
+        texto_titulo = fuente_grande.render("Onion Skinning Complejo - Personaje Brincando y Objetos", True, BLANCO)
         ventana.blit(texto_titulo, (ANCHO//2 - texto_titulo.get_width()//2, 20))
         
         estado_onion = "ACTIVADO" if sistema.mostrar_onion_skin else "DESACTIVADO"
@@ -386,8 +511,8 @@ def demostracion_onion_animacion_compleja():
             f"Tiempo: {tiempo_total:.1f}s | Frames: {len(sistema.frames)}",
             f"Onion Skinning: {estado_onion} | Frames mostrados: {sistema.cantidad_frames_mostrar}",
             f"Objetos animados: {num_objetos}",
-            "Cada objeto tiene movimiento circular independiente con diferentes fases",
-            "Onion skinning muestra las trayectorias completas de todos los objetos",
+            "Personaje central (cuerpo opaco) brinca y cambia de color (referencias cian).",
+            "Los objetos externos giran y cambian de tamaño (referencias contorno).",
             "",
             "Controles:",
             "O: Activar/Desactivar Onion Skinning",
@@ -561,7 +686,7 @@ def menu_principal_clase4():
     
     opciones = [
         ("1. Onion Skinning Básico - Personaje", demostracion_onion_basico),
-        ("2. Onion Skinning Complejo - Múltiples Objetos", demostracion_onion_animacion_compleja),
+        ("2. Onion Skinning Complejo - Cabeza brincando", demostracion_onion_animacion_compleja),
         ("3. Animación Cuadro por Cuadro", demostracion_animacion_cuadro_por_cuadro),
         ("4. Salir", None)
     ]
@@ -569,7 +694,7 @@ def menu_principal_clase4():
     while True:
         ventana.fill(NEGRO)
         
-        titulo = fuente_grande.render("CLASE 4: ONION SKINNING", True, BLANCO)
+        titulo = fuente_grande.render("Onnion Skinning", True, BLANCO)
         ventana.blit(titulo, (ANCHO//2 - titulo.get_width()//2, 50))
         
         subtitulo = fuente_mediana.render("Técnica de Referencia para Animación", True, VERDE)
@@ -584,7 +709,7 @@ def menu_principal_clase4():
         
         descripciones = [
             "Onion Skinning Básico: Animación automática con referencia visual",
-            "Onion Skinning Complejo: Múltiples objetos con trayectorias complejas",
+            "Onion Skinning Complejo: Personaje central con movimiento y color dinámico, rodeado de objetos complejos",
             "Animación Manual: Creación cuadro por cuadro con edición interactiva"
         ]
         
@@ -615,4 +740,5 @@ def menu_principal_clase4():
 if __name__ == "__main__":
     menu_principal_clase4()
 
-   
+
+
