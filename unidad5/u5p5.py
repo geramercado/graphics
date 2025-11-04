@@ -1,3 +1,6 @@
+
+# Gerardo Mercado Hurtado
+# Raúl Martínez Martínez 
 # importar bibliotecas
 import random
 import pygame
