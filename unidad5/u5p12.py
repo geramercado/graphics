@@ -8,13 +8,30 @@ scene = canvas(title="Animación 3D controlada por el usuario",
 # Suelo
 floor = box(pos=vector(0,0,0), size=vector(20,0.2,20), color=color.green)
 
-# Personaje tipo “robot humanoide” hecho con formas 3D
-body = box(pos=vector(0,1,0), size=vector(0.5,1,0.3), color=color.red)
-head = sphere(pos=vector(0,1.7,0), radius=0.2, color=color.yellow)
-arm_L = cylinder(pos=vector(-0.35,1.2,0), axis=vector(0,-0.5,0), radius=0.08, color=color.blue)
-arm_R = cylinder(pos=vector(0.35,1.2,0), axis=vector(0,-0.5,0), radius=0.08, color=color.blue)
-leg_L = cylinder(pos=vector(-0.15,0.5,0), axis=vector(0,-0.6,0), radius=0.08, color=color.white)
-leg_R = cylinder(pos=vector(0.15,0.5,0), axis=vector(0,-0.6,0), radius=0.08, color=color.white)
+# ----------------- nave espacial burro 3D
+
+# Cuerpo
+body = ellipsoid(pos=vector(0,1,0), size=vector(1.2,0.6,0.4), color=color.gray(0.5))
+
+# Cabeza
+head = ellipsoid(pos=vector(0,1.4,0.35), size=vector(0.4,0.3,0.3), color=color.gray(0.6))
+
+# Hocico
+nose = sphere(pos=vector(0,1.35,0.55), radius=0.12, color=color.gray(0.4))
+
+# Orejas
+ear_L = cone(pos=vector(-0.15,1.65,0.25), axis=vector(0,0.25,0), radius=0.07, color=color.gray(0.6))
+ear_R = cone(pos=vector(0.15,1.65,0.25), axis=vector(0,0.25,0), radius=0.07, color=color.gray(0.6))
+
+# Patas
+leg_FL = cylinder(pos=vector(-0.35,0.3,0.15), axis=vector(0,-0.6,0), radius=0.08, color=color.gray(0.4)) # frontal izquierda
+leg_FR = cylinder(pos=vector(0.35,0.3,0.15), axis=vector(0,-0.6,0), radius=0.08, color=color.gray(0.4))  # frontal derecha
+leg_BL = cylinder(pos=vector(-0.35,0.3,-0.15), axis=vector(0,-0.6,0), radius=0.08, color=color.gray(0.4)) # trasera izquierda
+leg_BR = cylinder(pos=vector(0.35,0.3,-0.15), axis=vector(0,-0.6,0), radius=0.08, color=color.gray(0.4))  # trasera derecha
+
+# Cola
+tail = cone(pos=vector(0,1, -0.4), axis=vector(0,-0.2,-0.2), radius=0.05, color=color.gray(0.3))
+
 
 # Variables de control
 posicion = vector(0,0,0)
@@ -23,14 +40,12 @@ velocidad = 0.1
 salto = False
 altura_salto = 0
 
-# Movimiento de cámara y personaje
+# Movimiento de cámara
 scene.forward = vector(-1,-0.3,-1)
 
 # Bucle principal
 while True:
     rate(60)
-
-    # Teclas presionadas
     keys = keysdown()
 
     # Movimiento adelante / atrás
@@ -39,7 +54,7 @@ while True:
     if 'down' in keys:
         posicion -= vector(velocidad*sin(angulo), 0, velocidad*cos(angulo))
 
-    # Girar izquierda / derecha
+    # Girar
     if 'left' in keys:
         angulo -= 0.08
     if 'right' in keys:
@@ -52,30 +67,37 @@ while True:
 
     # Simulación de salto
     if salto:
-        body.pos.y += altura_salto
-        head.pos.y += altura_salto
-        arm_L.pos.y += altura_salto
-        arm_R.pos.y += altura_salto
-        leg_L.pos.y += altura_salto
-        leg_R.pos.y += altura_salto
+        for parte in [body, head, nose, ear_L, ear_R, leg_FL, leg_FR, leg_BL, leg_BR, tail]:
+            parte.pos.y += altura_salto
         altura_salto -= 0.01
+
         if body.pos.y <= 1:
             salto = False
+
+            # Reset posiciones verticales
             body.pos.y = 1
-            head.pos.y = 1.7
-            arm_L.pos.y = 1.2
-            arm_R.pos.y = 1.2
-            leg_L.pos.y = 0.5
-            leg_R.pos.y = 0.5
+            head.pos.y = 1.4
+            nose.pos.y = 1.35
+            ear_L.pos.y = 1.65
+            ear_R.pos.y = 1.65
+            leg_FL.pos.y = 0.3
+            leg_FR.pos.y = 0.3
+            leg_BL.pos.y = 0.3
+            leg_BR.pos.y = 0.3
+            tail.pos.y = 1
 
-    # Actualizar posición del cuerpo
+    # Actualizar posición horizontal del burro
     body.pos = vector(posicion.x, body.pos.y, posicion.z)
-    head.pos = vector(posicion.x, head.pos.y, posicion.z)
-    arm_L.pos = vector(posicion.x - 0.35*cos(angulo), arm_L.pos.y, posicion.z + 0.35*sin(angulo))
-    arm_R.pos = vector(posicion.x + 0.35*cos(angulo), arm_R.pos.y, posicion.z - 0.35*sin(angulo))
-    leg_L.pos = vector(posicion.x - 0.15*cos(angulo), leg_L.pos.y, posicion.z + 0.15*sin(angulo))
-    leg_R.pos = vector(posicion.x + 0.15*cos(angulo), leg_R.pos.y, posicion.z - 0.15*sin(angulo))
+    head.pos = vector(posicion.x, head.pos.y, posicion.z + 0.35)
+    nose.pos = vector(posicion.x, nose.pos.y, posicion.z + 0.55)
+    ear_L.pos = vector(posicion.x - 0.15*cos(angulo), ear_L.pos.y, posicion.z + 0.25)
+    ear_R.pos = vector(posicion.x + 0.15*cos(angulo), ear_R.pos.y, posicion.z + 0.25)
+    leg_FL.pos = vector(posicion.x - 0.35*cos(angulo), leg_FL.pos.y, posicion.z + 0.15*sin(angulo))
+    leg_FR.pos = vector(posicion.x + 0.35*cos(angulo), leg_FR.pos.y, posicion.z + 0.15*sin(angulo))
+    leg_BL.pos = vector(posicion.x - 0.35*cos(angulo), leg_BL.pos.y, posicion.z - 0.15*sin(angulo))
+    leg_BR.pos = vector(posicion.x + 0.35*cos(angulo), leg_BR.pos.y, posicion.z - 0.15*sin(angulo))
+    tail.pos = vector(posicion.x, tail.pos.y, posicion.z - 0.4)
 
-    # Rotar personaje
-    for parte in [body, head, arm_L, arm_R, leg_L, leg_R]:
+    # Rotar al burro
+    for parte in [body, head, nose, ear_L, ear_R, leg_FL, leg_FR, leg_BL, leg_BR, tail]:
         parte.axis = vector(sin(angulo), 0, cos(angulo))

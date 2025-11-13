@@ -7,7 +7,7 @@ import time
 pygame.init()
 ANCHO, ALTO = 800, 600
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("Frankenstein 2D: Supervivencia de Coyote")
+pygame.display.set_caption("Frankenstein Supervivencia de Coyote Gerardo Mercado Hurtado/Raúl Martínez Martínez")
 clock = pygame.time.Clock()
 FPS = 30
 
@@ -511,7 +511,7 @@ while True:
             mensaje = "¡SUPERVIVENCIA LOGRADA!"
             color_mensaje = VERDE_VICTORIA
         else:
-            mensaje = "GAME OVER - ¡Atrapado por los Coyotes Feroces!"
+            mensaje = "¡Atrapado por los Coyotes!"
             color_mensaje = ROJO_VIDA
             
         texto_final = fuente_grande.render(mensaje, True, color_mensaje)
