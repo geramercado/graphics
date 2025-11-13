@@ -11,6 +11,20 @@ pygame.display.set_caption("Frankenstein 2D: Supervivencia de Coyote")
 clock = pygame.time.Clock()
 FPS = 30
 
+# --- CONFIGURACIÓN DE MÚSICA (AÑADIDO) ---
+try:
+    # Asegúrate de tener un archivo 'lob.mp3' en la misma carpeta.
+    pygame.mixer.music.load('lob.mp3') 
+    # Reproducir la música en bucle infinito (-1)
+    pygame.mixer.music.play(-1) 
+    # Opcional: Baja un poco el volumen para que los efectos de sonido (si los hubiera) se escuchen.
+    pygame.mixer.music.set_volume(0.4) 
+    print("Música cargada y reproduciéndose.")
+except pygame.error as e:
+    # Si el archivo no existe o hay un problema de formato
+    print(f"ADVERTENCIA: No se pudo cargar la música de fondo 'lob.mp3'. Error: {e}")
+# ----------------------------------------
+
 # --- Colores ---
 BLANCO = (255, 255, 255)
 GRIS_CADAVERICO = (180, 180, 190)
@@ -48,11 +62,35 @@ tiempo_inicio = time.time()
 juego_terminado = False
 victoria = False
 
-# --- Plataformas de Hielo ---
+# --- Plataformas de Hielo (AÑADIDAS EN CANTIDAD) ---
 plataformas = [
-    pygame.Rect(150, 420, 100, 15),
-    pygame.Rect(400, 450, 150, 15),
-    pygame.Rect(600, 430, 80, 15),
+    # TIERRA BAJA (Cerca del suelo)
+    pygame.Rect(50, 470, 80, 15),
+    pygame.Rect(180, 450, 120, 15),
+    pygame.Rect(350, 470, 60, 15),
+    pygame.Rect(600, 455, 150, 15),
+    pygame.Rect(480, 500, 80, 15),
+    
+    # TIERRA MEDIA (Escalones intermedios)
+    pygame.Rect(100, 420, 100, 15),
+    pygame.Rect(250, 400, 70, 15),
+    pygame.Rect(450, 430, 90, 15),
+    pygame.Rect(700, 410, 80, 15),
+    pygame.Rect(50, 390, 60, 15),
+    pygame.Rect(350, 390, 50, 15),
+    
+    # TIERRA ALTA (Para saltos más grandes)
+    pygame.Rect(0, 380, 100, 15),
+    pygame.Rect(350, 360, 150, 15),
+    pygame.Rect(650, 370, 50, 15),
+    pygame.Rect(200, 340, 60, 15), 
+    pygame.Rect(550, 340, 120, 15),
+    pygame.Rect(700, 320, 50, 15),
+    
+    # PLATAFORMAS FLOTANTES (Desafío)
+    pygame.Rect(10, 300, 40, 15),
+    pygame.Rect(150, 280, 40, 15),
+    pygame.Rect(400, 260, 60, 15),
 ]
 
 # --- Animación de Frankenstein ---
@@ -185,7 +223,6 @@ class Coyote:
 # --- Funciones de Dibujo ---
 
 def dibujar_personaje(pantalla, x, y, current_frame):
-    # (El código de dibujo de Frankenstein se mantiene igual)
     brazo_largo = 40
     grosor_brazo = 10
     alto_pierna = 15
@@ -211,7 +248,7 @@ def dibujar_personaje(pantalla, x, y, current_frame):
     pygame.draw.line(pantalla, MARRON_OSCURO_ABRIGO, (sh_x_r, sh_y_r), (e_x_r, e_y_r), grosor_brazo)
     pygame.draw.circle(pantalla, GRIS_CADAVERICO, (e_x_r, e_y_r), grosor_brazo // 2 + 2)
     
-    # 2. CUERPO Y CABEZA 
+    # 2. CUERPO Y ABRIGO
     pygame.draw.rect(pantalla, MARRON_OSCURO_ABRIGO, (x, y, 50, 80))
     # Abrigo (hombros)
     pygame.draw.polygon(pantalla, MARRON_OSCURO_ABRIGO, [(x - 10, y - 50), (x + 60, y - 50), (x + 55, y - 20), (x - 5, y - 20)])
@@ -223,15 +260,47 @@ def dibujar_personaje(pantalla, x, y, current_frame):
     pygame.draw.line(pantalla, GRIS_CLARO, (x + 10, y - 45), (x + 20, y - 40), 2)
     pygame.draw.line(pantalla, GRIS_CLARO, (x + 40, y - 45), (x + 30, y - 40), 2)
 
-    # Cabeza
+    # --- CABELLO LARGO Y SIN VELO ---
+    # Cabello Superior (Messy Top)
+    pygame.draw.polygon(pantalla, NEGRO, [
+        (x + 5, y - 45),    
+        (x + 45, y - 45),   
+        (x + 40, y - 35),   
+        (x + 10, y - 35)    
+    ], 0) 
+
+    # Cabello Lateral Izquierdo (Largo, cae hasta la altura del cuello)
+    pygame.draw.polygon(pantalla, NEGRO, [
+        (x + 10, y - 30),
+        (x - 5, y - 20),
+        (x - 5, y + 5), 
+        (x + 10, y + 5),
+        (x + 20, y - 20)
+    ], 0)
+
+    # Cabello Lateral Derecho (Largo, cae hasta la altura del cuello)
+    pygame.draw.polygon(pantalla, NEGRO, [
+        (x + 40, y - 30),
+        (x + 55, y - 20),
+        (x + 55, y + 5), 
+        (x + 40, y + 5),
+        (x + 30, y - 20)
+    ], 0)
+    # --- FIN CABELLO ---
+
+    # Cabeza 
     pygame.draw.circle(pantalla, GRIS_CADAVERICO, (x + 25, y - 20), 20)
+    
+    # Rasgos de la cara
     pygame.draw.circle(pantalla, NEGRO, (x + 19, y - 28), 2) # Ojo izquierdo
     pygame.draw.circle(pantalla, NEGRO, (x + 31, y - 28), 2) # Ojo derecho
     pygame.draw.line(pantalla, NEGRO, (x + 18, y - 15), (x + 32, y - 15), 1) # Boca
-    pygame.draw.line(pantalla, NEGRO, (x + 15, y - 35), (x + 35, y - 25), 2) # Pelo
+    
+    # Cicatrices y costuras
     pygame.draw.line(pantalla, NEGRO, (x + 10, y - 20), (x + 25, y - 10), 2) # Cicatriz
     pygame.draw.line(pantalla, ROJO_OSCURO_HERIDA, (x + 12, y - 18), (x + 23, y - 12), 1) # Herida
     pygame.draw.line(pantalla, NEGRO, (x + 25, y - 5), (x + 30, y + 5), 2) # Costura en el cuello
+
 
     # 3. PIERNAS Y PIES
     base_y = y + 80
